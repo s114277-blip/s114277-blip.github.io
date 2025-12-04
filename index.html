@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>貪吃蛇遊戲</title>
+
+    <style>
+        body {
+            background: #202124;
+            color: white;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            margin-top: 30px;
+        }
+
+        canvas {
+            background: #111;
+            margin-top: 20px;
+            border: 2px solid #4caf50;
+        }
+
+        #score {
+            margin-top: 15px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🐍 貪吃蛇遊戲</h1>
+
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <p>使用方向鍵操作蛇</p>
+    <div id="score">Score: 0</div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreText = document.getElementById("score");
+
+        let box = 20;
+        let snake = [{ x: 9 * box, y: 9 * box }];
+        let direction = null;
+        let score = 0;
+
+        let food = {
+            x: Math.floor(Math.random() * 19) * box,
+            y: Math.floor(Math.random() * 19) * box
+        };
+
+        document.addEventListener("keydown", changeDirection);
+
+        function changeDirection(e) {
+            if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+            else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+            else if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+            else if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, 400, 400);
+
+            // draw food
+            ctx.fillStyle = "red";
+            ctx.fillRect(food.x, food.y, box, box);
+
+            // draw snake
+            ctx.fillStyle = "#4caf50";
+            for (let part of snake) {
+                ctx.fillRect(part.x, part.y, box, box);
+            }
+
+            // move head
+            let headX = snake[0].x;
+            let headY = snake[0].y;
+
+            if (direction === "LEFT") headX -= box;
+            if (direction === "RIGHT") headX += box;
