@@ -46,6 +46,7 @@ function createBox() {
     box.style.height = box.size + "px";
     box.style.background = randomColor();
     box.clicked = false;
+    box.canDeduct = true; // 只扣一次
 
     box.onclick = function() {
         if (!gameRunning) return;
@@ -65,6 +66,8 @@ function createBox() {
 
         // 加快速度
         speed = Math.max(minSpeed, speed - 20);
+
+        box.canDeduct = false; // 點過後不再扣分
     };
 
     game.appendChild(box);
@@ -75,11 +78,14 @@ function createBox() {
 function moveBoxes() {
     if (!gameRunning) return;
     boxes.forEach(box => {
-        if (!box.clicked && (box.style.background === "red" || box.style.background === "yellow")) {
+        // 只在第一次沒點時扣分
+        if (!box.clicked && box.canDeduct && (box.style.background === "red" || box.style.background === "yellow")) {
             score = Math.max(0, score - 1);
             scoreDisplay.textContent = "分數：" + score;
         }
-        box.clicked = false;
+
+        box.clicked = false; // 重置點擊狀態
+        box.canDeduct = true; // 新一輪可再扣
 
         // 隨機位置
         const maxX = game.clientWidth - box.offsetWidth;
