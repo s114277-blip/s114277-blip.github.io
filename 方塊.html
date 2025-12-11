@@ -2,86 +2,46 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>點擊方塊遊戲</title>
+<title>簡單點擊方塊</title>
 <style>
-    body {
-        background: #222;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        font-family: Arial, sans-serif;
-        color: white;
-    }
-    #game {
-        width: 400px;
-        height: 400px;
-        background: #111;
-        border: 2px solid #444;
-        position: relative;
-        overflow: hidden;
-    }
-    #box {
-        width: 40px;
-        height: 40px;
-        background: red;
-        position: absolute;
-        cursor: pointer;
-        border-radius: 4px;
-    }
-    #score {
-        margin-top: 10px;
-        text-align: center;
-        font-size: 22px;
-    }
+body { background:#333; margin:0; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; font-family:Arial; color:white;}
+#game{width:400px; height:400px; background:black; position:relative; border:3px solid white; margin-bottom:10px;}
+.box{width:50px; height:50px; position:absolute; background:red; cursor:pointer; border-radius:5px;}
+#score{font-size:20px;margin:5px;}
 </style>
 </head>
 <body>
-
-<div>
-    <div id="game">
-        <div id="box"></div>
-    </div>
-    <div id="score">分數：0</div>
-</div>
+<div id="game"></div>
+<div id="score">分數：0</div>
 
 <script>
 const game = document.getElementById("game");
-const box = document.getElementById("box");
 const scoreDisplay = document.getElementById("score");
+
 let score = 0;
-let speed = 1000; // 初始速度（毫秒）
+
+// 創建方塊
+const box = document.createElement("div");
+box.classList.add("box");
 
 // 隨機位置
 function moveBox() {
-    const maxX = game.clientWidth - box.clientWidth;
-    const maxY = game.clientHeight - box.clientHeight;
-    const x = Math.random() * maxX;
-    const y = Math.random() * maxY;
-
-    box.style.left = x + "px";
-    box.style.top = y + "px";
+    const maxX = game.clientWidth - box.offsetWidth;
+    const maxY = game.clientHeight - box.offsetHeight;
+    box.style.left = Math.random() * maxX + "px";
+    box.style.top = Math.random() * maxY + "px";
 }
 
-// 點擊事件
-box.addEventListener("click", () => {
+// 點擊加分
+box.onclick = function() {
     score++;
     scoreDisplay.textContent = "分數：" + score;
+    moveBox(); // 點完立即換位置
+}
 
-    // 加快速度（最慢到 300ms）
-    if (speed > 300) speed -= 50;
-
-    clearInterval(loop);
-    loop = setInterval(moveBox, speed);
-});
-
-// 每秒移動一次
-let loop = setInterval(moveBox, speed);
-
-// 初始位置
+// 初始化
+game.appendChild(box);
 moveBox();
 </script>
-
 </body>
 </html>
