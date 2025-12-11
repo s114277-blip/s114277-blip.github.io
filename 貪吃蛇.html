@@ -1,17 +1,124 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>貪吃蛇遊戲</title>
-    <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<title>貪吃蛇遊戲</title>
+<style>
+    body {
+        background: #222;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        color: white;
+        font-family: Arial, sans-serif;
+    }
+    #game-container {
+        text-align: center;
+    }
+    canvas {
+        background: #111;
+        border: 2px solid #555;
+    }
+    h1 { margin-bottom: 10px; }
+</style>
 </head>
 
 <body>
+<div id="game-container">
     <h1>🐍 貪吃蛇遊戲</h1>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <p>使用方向鍵進行遊戲</p>
+    <canvas id="game" width="400" height="400"></canvas>
+    <p>使用方向鍵移動</p>
+</div>
 
-    <script src="script.js"></script>
-</body>
-</html>
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const gridSize = 20; // 每格大小
+let snake = [{ x: 200, y: 200 }]; // 初始蛇
+let direction = { x: 0, y: 0 };
+let food = spawnFood();
+let score = 0;
+
+// 生成食物
+function spawnFood() {
+    return {
+        x: Math.floor(Math.random() * 20) * gridSize,
+        y: Math.floor(Math.random() * 20) * gridSize
+    };
+}
+
+// 控制方向
+document.addEventListener("keydown", e => {
+    if (e.key === "ArrowUp" && direction.y === 0) {
+        direction = { x: 0, y: -gridSize };
+    }
+    if (e.key === "ArrowDown" && direction.y === 0) {
+        direction = { x: 0, y: gridSize };
+    }
+    if (e.key === "ArrowLeft" && direction.x === 0) {
+        direction = { x: -gridSize, y: 0 };
+    }
+    if (e.key === "ArrowRight" && direction.x === 0) {
+        direction = { x: gridSize, y: 0 };
+    }
+});
+
+// 遊戲主迴圈
+function gameLoop() {
+    requestAnimationFrame(gameLoop);
+
+    // 移動速度控制
+    if (++frameCount < 8) return;
+    frameCount = 0;
+
+    update();
+    draw();
+}
+
+let frameCount = 0;
+
+function update() {
+    const head = {
+        x: snake[0].x + direction.x,
+        y: snake[0].y + direction.y
+    };
+
+    // 撞牆
+    if (head.x < 0 || head.x >= canvas.width ||
+        head.y < 0 || head.y >= canvas.height) {
+        resetGame();
+        return;
+    }
+
+    // 撞自己
+    if (snake.some(s => s.x === head.x && s.y === head.y)) {
+        resetGame();
+        return;
+    }
+
+    snake.unshift(head);
+
+    // 吃到食物
+    if (head.x === food.x && head.y === food.y) {
+        food = spawnFood();
+        score++;
+    } else {
+        snake.pop();
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 畫蛇
+    ctx.fillStyle = "lime";
+    snake.forEach(part => {
+        ctx.fillRect(part.x, part.y, gridSize, gridSize);
+    });
+
+    // 畫食物
+    ctx.fillStyle = "red";
+    ctx.fillRect(food.x, food.y, gridSize, gridSi
