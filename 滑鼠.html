@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h2>滑鼠測試</h2>
+<p id="msg">點一下畫面試試看</p>
+
+<script>
+document.addEventListener("click", function(e) {
+    document.getElementById("msg").innerText =
+        "你點到的位置：" + e.clientX + ", " + e.clientY;
+});
+</script>
+</body>
+</html>
