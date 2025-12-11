@@ -22,7 +22,7 @@ const timeDisplay = document.getElementById("time");
 
 let score = 0;
 let totalTime = 30;
-let speed = 1000;  // 移動間隔
+let speed = 1000;
 let minSpeed = 300;
 let boxes = [];
 let gameRunning = true;
@@ -46,7 +46,7 @@ function createBox() {
     box.style.height = box.size + "px";
     box.style.background = randomColor();
     box.clicked = false;
-    box.canDeduct = true; // 只扣一次
+    box.deducted = false; // 是否已經扣過分
 
     box.onclick = function() {
         if (!gameRunning) return;
@@ -67,7 +67,7 @@ function createBox() {
         // 加快速度
         speed = Math.max(minSpeed, speed - 20);
 
-        box.canDeduct = false; // 點過後不再扣分
+        box.deducted = true; // 點過就不再扣分
     };
 
     game.appendChild(box);
@@ -78,14 +78,14 @@ function createBox() {
 function moveBoxes() {
     if (!gameRunning) return;
     boxes.forEach(box => {
-        // 只在第一次沒點時扣分
-        if (!box.clicked && box.canDeduct && (box.style.background === "red" || box.style.background === "yellow")) {
+        // 只在第一次沒點時扣分，且沒扣過的才扣
+        if (!box.clicked && !box.deducted && (box.style.background === "red" || box.style.background === "yellow")) {
             score = Math.max(0, score - 1);
             scoreDisplay.textContent = "分數：" + score;
+            box.deducted = true; // 扣過一次就不再扣
         }
 
         box.clicked = false; // 重置點擊狀態
-        box.canDeduct = true; // 新一輪可再扣
 
         // 隨機位置
         const maxX = game.clientWidth - box.offsetWidth;
