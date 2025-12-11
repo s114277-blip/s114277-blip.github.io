@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>可點擊高挑戰版</title>
+<title>可點擊高挑戰版修正版</title>
 <style>
 body { background:#333; margin:0; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; font-family:Arial; color:white;}
 #game{width:400px; height:400px; background:black; position:relative; border:3px solid white; margin-bottom:10px;}
@@ -26,6 +26,7 @@ let speed=1000;
 let minSpeed=300;
 let boxes=[];
 let timer;
+let gameRunning=true;
 
 // 顏色隨機
 function randomColor(){
@@ -43,32 +44,37 @@ function createBox(){
     box.clicked=false;
 
     box.onclick=function(){
+        if(!gameRunning) return;
         box.clicked=true;
         if(box.style.background==="red") score+=Math.round(1000/speed);
         else if(box.style.background==="yellow") score+=Math.round(2000/speed);
         else if(box.style.background==="blue") score=Math.max(0,score-1);
         scoreDisplay.textContent="分數："+score;
+
         speed=Math.max(minSpeed,speed-20);
     };
 
     game.appendChild(box);
     boxes.push(box);
+    moveBox(box);
 }
 
-// 移動所有方塊（統一控制，保證可點）
-function moveBoxes(){
-    boxes.forEach(box=>{
-        if(!box.clicked && (box.style.background==="red" || box.style.background==="yellow")){
-            score=Math.max(0,score-1);
-            scoreDisplay.textContent="分數："+score;
-        }
-        box.clicked=false;
-        box.style.background=randomColor();
-        let maxX=game.clientWidth-box.offsetWidth;
-        let maxY=game.clientHeight-box.offsetHeight;
-        box.style.left=Math.random()*maxX+"px";
-        box.style.top=Math.random()*maxY+"px";
-    });
+// 移動單個方塊（使用 setTimeout 保證可動態速度）
+function moveBox(box){
+    if(!gameRunning) return;
+    if(!box.clicked && (box.style.background==="red" || box.style.background==="yellow")){
+        score=Math.max(0,score-1);
+        scoreDisplay.textContent="分數："+score;
+    }
+    box.clicked=false;
+    box.style.background=randomColor();
+    let maxX=game.clientWidth-box.offsetWidth;
+    let maxY=game.clientHeight-box.offsetHeight;
+    box.style.left=Math.random()*maxX+"px";
+    box.style.top=Math.random()*maxY+"px";
+
+    let randomTime = speed + Math.random()*200;
+    box.timeout = setTimeout(()=>moveBox(box), randomTime);
 }
 
 // 倒數計時
@@ -78,24 +84,23 @@ function startTimer(){
         timeDisplay.textContent="剩餘時間："+totalTime+" 秒";
         if(totalTime<=0){
             clearInterval(timer);
-            clearInterval(loop);
-            boxes.forEach(b=>b.remove());
+            gameRunning=false;
+            boxes.forEach(box=>clearTimeout(box.timeout));
             alert("遊戲結束！你的分數："+score);
+            // 重置遊戲
             score=0; totalTime=30; speed=1000;
             scoreDisplay.textContent="分數：0";
             timeDisplay.textContent="剩餘時間：30 秒";
+            gameRunning=true;
+            boxes.forEach(box=>box.remove());
+            boxes=[];
             startGame();
         }
     },1000);
 }
 
 function startGame(){
-    boxes.forEach(b=>b.remove());
-    boxes=[];
     for(let i=0;i<3;i++) createBox();
-    loop=setInterval(()=>{
-        moveBoxes();
-    },speed);
 }
 
 startGame();
