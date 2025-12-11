@@ -2,59 +2,153 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>點擊方塊遊戲（學校電腦版）</title>
+<title>高挑戰點擊方塊遊戲</title>
 <style>
-    body {
-        background: #333;
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        font-family: Arial;
-        color: white;
-    }
-    #game {
-        width: 400px;
-        height: 400px;
-        background: black;
-        position: relative;
-        border: 3px solid white;
-    }
-    #box {
-        width: 50px;
-        height: 50px;
-        background: red;
-        position: absolute;
-    }
+body { 
+    background: #333; 
+    margin: 0; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    height: 100vh; 
+    font-family: Arial; 
+    color: white; 
+}
+#game { 
+    width: 400px; 
+    height: 400px; 
+    background: black; 
+    position: relative; 
+    border: 3px solid white; 
+    margin-bottom: 10px; 
+}
+.box { 
+    width: 50px; 
+    height: 50px; 
+    position: absolute; 
+    cursor: pointer; 
+    border-radius: 5px;
+}
+#score, #time { 
+    font-size: 20px; 
+    margin: 5px; 
+}
 </style>
 </head>
-
 <body>
-<div id="game">
-    <div id="box"></div>
-</div>
+
+<div id="game"></div>
+<div id="score">分數：0</div>
+<div id="time">剩餘時間：30 秒</div>
+
 <script>
 let game = document.getElementById("game");
-let box = document.getElementById("box");
-let score = 0;
+let scoreDisplay = document.getElementById("score");
+let timeDisplay = document.getElementById("time");
 
-function moveBox() {
-    let maxX = game.clientWidth - box.clientWidth;
-    let maxY = game.clientHeight - box.clientHeight;
-    box.style.left = Math.random() * maxX + "px";
-    box.style.top = Math.random() * maxY + "px";
+let score = 0;
+let totalTime = 30;
+let minSize = 20;
+let maxSize = 50;
+let speed = 1000; // 初始移動速度
+let minSpeed = 300; // 最快速度
+let boxes = [];
+let timer;
+
+// 隨機顏色類型：紅=普通，黃=加倍，藍=扣分
+function randomColor() {
+    let r = Math.random();
+    if(r < 0.6) return "red";     // 60%普通
+    if(r < 0.85) return "yellow"; // 25%加倍
+    return "blue";                 // 15%扣分
 }
 
-// 最重要：直接監聽 box 點擊
-box.onclick = function () {
-    score++;
-    alert("你點到了！目前分數：" + score);
-    moveBox();
-};
+// 更新分數文字
+function updateScoreDisplay() {
+    scoreDisplay.textContent = "分數：" + score;
+}
 
-// 初次位置
-moveBox();
+// 更新倒數計時
+function startTimer() {
+    timer = setInterval(() => {
+        totalTime--;
+        timeDisplay.textContent = "剩餘時間：" + totalTime + " 秒";
+        if(totalTime <= 0) {
+            clearInterval(timer);
+            boxes.forEach(b => b.remove());
+            alert("遊戲結束！你的分數：" + score);
+            // 重置
+            score = 0;
+            totalTime = 30;
+            speed = 1000;
+            updateScoreDisplay();
+            timeDisplay.textContent = "剩餘時間：" + totalTime + " 秒";
+            startGame();
+        }
+    }, 1000);
+}
+
+// 創建方塊
+function createBox() {
+    let box = document.createElement("div");
+    box.classList.add("box");
+    box.style.background = randomColor();
+    box.size = Math.max(minSize, maxSize - score*2);
+    box.style.width = box.size + "px";
+    box.style.height = box.size + "px";
+    box.clicked = false;
+
+    box.onclick = function() {
+        box.clicked = true;
+        if(box.style.background === "red") score += Math.round(1000/speed);
+        else if(box.style.background === "yellow") score += Math.round(2000/speed); //加倍
+        else if(box.style.background === "blue") score = Math.max(0, score - 1); //扣分
+        updateScoreDisplay();
+
+        speed = Math.max(minSpeed, speed - 20); // 加快速度
+        moveBox(box);
+    };
+
+    game.appendChild(box);
+    boxes.push(box);
+    moveBox(box);
+}
+
+// 移動方塊
+function moveBox(box) {
+    box.clicked = false;
+    let maxX = game.clientWidth - box.offsetWidth;
+    let maxY = game.clientHeight - box.offsetHeight;
+    box.style.left = Math.random()*maxX + "px";
+    box.style.top = Math.random()*maxY + "px";
+
+    box.style.background = randomColor();
+    let randomTime = speed + Math.random()*200; // 隨機時間
+    setTimeout(() => {
+        if(!box.clicked) {
+            // 未點到倒扣
+            if(box.style.background === "red" || box.style.background === "yellow") {
+                score = Math.max(0, score - 1);
+                updateScoreDisplay();
+            }
+        }
+        moveBox(box);
+    }, randomTime);
+}
+
+// 開始遊戲
+function startGame() {
+    boxes.forEach(b => b.remove());
+    boxes = [];
+    for(let i=0;i<3;i++){ // 初始3個方塊
+        createBox();
+    }
+}
+
+startGame();
+startTimer();
 </script>
+
 </body>
 </html>
