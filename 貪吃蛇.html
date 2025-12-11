@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>貪吃蛇遊戲</title>
 <style>
     body {
@@ -14,94 +14,86 @@
         color: white;
         font-family: Arial, sans-serif;
     }
-    #game-container {
-        text-align: center;
-    }
     canvas {
-        background: #111;
+        background: #000;
         border: 2px solid #555;
     }
-    h1 { margin-bottom: 10px; }
 </style>
 </head>
-
 <body>
-<div id="game-container">
-    <h1>🐍 貪吃蛇遊戲</h1>
-    <canvas id="game" width="400" height="400"></canvas>
-    <p>使用方向鍵移動</p>
-</div>
+
+<canvas id="game" width="400" height="400"></canvas>
 
 <script>
+// 畫布
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const gridSize = 20; // 每格大小
-let snake = [{ x: 200, y: 200 }]; // 初始蛇
-let direction = { x: 0, y: 0 };
+const grid = 20;
+let snake = [{ x: 200, y: 200 }];
+let dx = 0, dy = 0; // 方向
 let food = spawnFood();
 let score = 0;
 
-// 生成食物
+// 產生食物
 function spawnFood() {
     return {
-        x: Math.floor(Math.random() * 20) * gridSize,
-        y: Math.floor(Math.random() * 20) * gridSize
+        x: Math.floor(Math.random() * 20) * grid,
+        y: Math.floor(Math.random() * 20) * grid
     };
 }
 
-// 控制方向
-document.addEventListener("keydown", e => {
-    if (e.key === "ArrowUp" && direction.y === 0) {
-        direction = { x: 0, y: -gridSize };
+// 處理方向鍵（✔ 修正加入 preventDefault）
+document.addEventListener("keydown", function (e) {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault(); // 避免頁面捲動
     }
-    if (e.key === "ArrowDown" && direction.y === 0) {
-        direction = { x: 0, y: gridSize };
+
+    if (e.key === "ArrowUp" && dy === 0) {
+        dx = 0; dy = -grid;
     }
-    if (e.key === "ArrowLeft" && direction.x === 0) {
-        direction = { x: -gridSize, y: 0 };
+    if (e.key === "ArrowDown" && dy === 0) {
+        dx = 0; dy = grid;
     }
-    if (e.key === "ArrowRight" && direction.x === 0) {
-        direction = { x: gridSize, y: 0 };
+    if (e.key === "ArrowLeft" && dx === 0) {
+        dx = -grid; dy = 0;
+    }
+    if (e.key === "ArrowRight" && dx === 0) {
+        dx = grid; dy = 0;
     }
 });
 
 // 遊戲主迴圈
-function gameLoop() {
-    requestAnimationFrame(gameLoop);
+let frame = 0;
+function loop() {
+    requestAnimationFrame(loop);
 
-    // 移動速度控制
-    if (++frameCount < 8) return;
-    frameCount = 0;
+    if (++frame < 10) return;
+    frame = 0;
 
     update();
     draw();
 }
-
-let frameCount = 0;
+loop();
 
 function update() {
-    const head = {
-        x: snake[0].x + direction.x,
-        y: snake[0].y + direction.y
-    };
+    if (dx === 0 && dy === 0) return; // 尚未開始動
+
+    const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
     // 撞牆
-    if (head.x < 0 || head.x >= canvas.width ||
-        head.y < 0 || head.y >= canvas.height) {
-        resetGame();
-        return;
+    if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+        return resetGame();
     }
 
     // 撞自己
-    if (snake.some(s => s.x === head.x && s.y === head.y)) {
-        resetGame();
-        return;
+    if (snake.some(p => p.x === head.x && p.y === head.y)) {
+        return resetGame();
     }
 
     snake.unshift(head);
 
-    // 吃到食物
+    // 吃食物
     if (head.x === food.x && head.y === food.y) {
         food = spawnFood();
         score++;
@@ -113,12 +105,28 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 畫蛇
+    // 蛇
     ctx.fillStyle = "lime";
-    snake.forEach(part => {
-        ctx.fillRect(part.x, part.y, gridSize, gridSize);
-    });
+    snake.forEach(p => ctx.fillRect(p.x, p.y, grid, grid));
 
-    // 畫食物
+    // 食物
     ctx.fillStyle = "red";
-    ctx.fillRect(food.x, food.y, gridSize, gridSi
+    ctx.fillRect(food.x, food.y, grid, grid);
+
+    // 分數
+    ctx.fillStyle = "white";
+    ctx.font = "16px Arial";
+    ctx.fillText("分數：" + score, 10, 20);
+}
+
+function resetGame() {
+    alert("遊戲結束！分數：" + score);
+    snake = [{ x: 200, y: 200 }];
+    dx = 0; dy = 0;
+    food = spawnFood();
+    score = 0;
+}
+</script>
+
+</body>
+</html>
